@@ -79,4 +79,4 @@ if __name__ == "__main__":
     now = now.strftime("%Y%m%d_%H%M%S")
     model_filename = f"models/void_{now}.pth"
     torch.save(model.state_dict(), model_filename)
-    print(f"Trained feed forward net saved at {model_filename}")
+    print(f"Trained void model saved at {model_filename}")
