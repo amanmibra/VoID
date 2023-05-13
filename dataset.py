@@ -29,11 +29,7 @@ class VoiceDataset(Dataset):
         self.num_samples = time_limit_in_secs * self.target_sample_rate
 
     def __len__(self):
-        total_audio_files = 0
-        for label in self._labels:
-            label_path = os.path.join(self._data_path, label)
-            total_audio_files += len(os.listdir(label_path))
-        return total_audio_files
+        return len(self.audio_files_labels)
 
     def __getitem__(self, index):
         # get file
