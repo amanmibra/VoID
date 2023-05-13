@@ -18,6 +18,7 @@ class VoiceDataset(Dataset):
         # file processing
         self._data_path = os.path.join(data_directory)
         self._labels = os.listdir(self._data_path)
+        self.label_mapping = {label: i for i, label in enumerate(self._labels)}
         self.audio_files_labels = self._join_audio_files()
 
         self.device = device
@@ -50,7 +51,9 @@ class VoiceDataset(Dataset):
         
         # apply transformation
         wav = self.transformation(wav)
-        return wav, label
+
+        # return wav and integer representation of the label
+        return wav, self.label_mapping[label]
 
 
     def _join_audio_files(self):
