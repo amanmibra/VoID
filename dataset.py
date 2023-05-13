@@ -7,12 +7,20 @@ import torchaudio
 
 class VoiceDataset(Dataset):
 
-    def __init__(self, data_directory, transformation, target_sample_rate, time_limit_in_secs=5):
+    def __init__(
+            self,
+            data_directory,
+            transformation,
+            target_sample_rate,
+            device,
+            time_limit_in_secs=5,
+        ):
         # file processing
         self._data_path = os.path.join(data_directory)
         self._labels = os.listdir(self._data_path)
-
         self.audio_files_labels = self._join_audio_files()
+
+        self.device = device
 
         # audio processing
         self.transformation = transformation
@@ -35,6 +43,7 @@ class VoiceDataset(Dataset):
         wav, sr = torchaudio.load(filepath, normalize=True)
 
         # modify wav file, if necessary
+        wav = wav.to(self.device)
         wav = self._resample(wav, sr)
         wav = self._mix_down(wav)
         wav = self._cut_or_pad(wav)
