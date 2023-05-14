@@ -11,8 +11,8 @@ class VoiceDataset(Dataset):
             self,
             data_directory,
             transformation,
-            target_sample_rate,
             device,
+            target_sample_rate=48000,
             time_limit_in_secs=5,
         ):
         # file processing

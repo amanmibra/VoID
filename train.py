@@ -17,7 +17,7 @@ LEARNING_RATE = 0.001
 
 TRAIN_FILE="data/train"
 TEST_FILE="data/test"
-SAMPLE_RATE=16000
+SAMPLE_RATE=48000
 
 def train(model, train_dataloader, loss_fn, optimizer, device, epochs, test_dataloader=None):
     training_acc = []
@@ -116,8 +116,8 @@ if __name__ == "__main__":
         n_mels=64
     )
 
-    train_dataset = VoiceDataset(TRAIN_FILE, mel_spectrogram, SAMPLE_RATE, device)
-    test_dataset = VoiceDataset(TEST_FILE, mel_spectrogram, SAMPLE_RATE, device)
+    train_dataset = VoiceDataset(TRAIN_FILE, mel_spectrogram, device)
+    test_dataset = VoiceDataset(TEST_FILE, mel_spectrogram, device)
     train_dataloader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
     test_dataloader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=True)
 
