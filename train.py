@@ -16,6 +16,7 @@ EPOCHS = 100
 LEARNING_RATE = 0.001
 
 TRAIN_FILE="data/train"
+TEST_FILE="data/test"
 SAMPLE_RATE=16000
 
 def train(model, train_dataloader, loss_fn, optimizer, device, epochs, test_dataloader=None):
@@ -24,7 +25,7 @@ def train(model, train_dataloader, loss_fn, optimizer, device, epochs, test_data
     testing_acc = []
     testing_loss = []
 
-    for i in tqdm(range(epochs), "Training model..."):
+    for i in range(epochs):
         print(f"Epoch {i + 1}")
 
         # train model
@@ -59,7 +60,7 @@ def train_epoch(model, train_dataloader, loss_fn, optimizer, device):
 
     model.train()
 
-    for wav, target in train_dataloader:
+    for wav, target in tqdm(train_dataloader, "Training batch..."):
         wav, target = wav.to(device), target.to(device)
 
         # calculate loss
@@ -87,7 +88,7 @@ def validate_epoch(model, test_dataloader, loss_fn, device):
     model.eval()
 
     with torch.no_grad():
-        for wav, target in test_dataloader:
+        for wav, target in tqdm(test_dataloader, "Testing batch..."):
             wav, target = wav.to(device), target.to(device)
 
             output = model(wav)
@@ -116,7 +117,9 @@ if __name__ == "__main__":
     )
 
     train_dataset = VoiceDataset(TRAIN_FILE, mel_spectrogram, SAMPLE_RATE, device)
+    test_dataset = VoiceDataset(TEST_FILE, mel_spectrogram, SAMPLE_RATE, device)
     train_dataloader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
+    test_dataloader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=True)
 
     # construct model
     model = CNNetwork().to(device)
@@ -128,7 +131,7 @@ if __name__ == "__main__":
 
 
     # train model
-    train(model, train_dataloader, loss_fn, optimizer, device, EPOCHS)
+    train(model, train_dataloader, loss_fn, optimizer, device, EPOCHS, test_dataloader=test_dataloader)
 
     # save model
     now = datetime.now()
