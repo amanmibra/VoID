@@ -4,6 +4,15 @@ Util functions to process any incoming audio data to be processable by the model
 import torch
 import torchaudio
 
+def process_from_filename(filename, target_sample_rate=4800, wav_length=5):
+    wav, sample_rate = torchaudio.load(filename)
+
+    wav = process_raw_wav(wav, sample_rate, target_sample_rate, wav_length)
+
+    spec = _wav_to_spec(wav, target_sample_rate)
+
+    return spec
+
 def process_raw_wav(wav, sample_rate, target_sample_rate=4800, wav_length=5):
     num_samples = wav_length * target_sample_rate
 
@@ -13,6 +22,16 @@ def process_raw_wav(wav, sample_rate, target_sample_rate=4800, wav_length=5):
     wav = _pad(wav, num_samples)
 
     return wav
+
+def _wav_to_spec(wav, target_sample_rate):
+    mel_spectrogram = torchaudio.transforms.MelSpectrogram(
+        sample_rate=target_sample_rate,
+        n_fft=1024,
+        hop_length=512,
+        n_mels=64
+    )
+
+    return mel_spectrogram(wav)
 
 def _resample(wav, sample_rate, target_sample_rate):
     if sample_rate != target_sample_rate:
