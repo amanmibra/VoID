@@ -18,31 +18,87 @@ LEARNING_RATE = 0.001
 TRAIN_FILE="data/train"
 SAMPLE_RATE=16000
 
-def train(model, dataloader, loss_fn, optimizer, device, epochs):
-  for i in tqdm(range(epochs), "Training model..."):
-    print(f"Epoch {i + 1}")
+def train(model, train_dataloader, loss_fn, optimizer, device, epochs, test_dataloader=None):
+    training_acc = []
+    training_loss = []
+    testing_acc = []
+    testing_loss = []
 
-    train_epoch(model, dataloader, loss_fn, optimizer, device)
+    for i in tqdm(range(epochs), "Training model..."):
+        print(f"Epoch {i + 1}")
 
-    print (f"----------------------------------- \n")
+        # train model
+        train_epoch_loss, train_epoch_acc = train_epoch(model, train_dataloader, loss_fn, optimizer, device)
+
+        # training metrics
+        training_loss.append(train_epoch_loss/len(train_dataloader))
+        training_acc.append(train_epoch_acc/len(train_dataloader))
+
+        print("Training Loss: {:.2f}, Training Accuracy  {:.2f}".format(training_loss[i], training_acc[i]))
+
+        if test_dataloader:
+            # test model
+            test_epoch_loss, test_epoch_acc = validate_epoch(model, test_dataloader, loss_fn, device)
+            
+            # testing metrics
+            testing_loss.append(test_epoch_loss/len(test_dataloader))
+            testing_acc.append(test_epoch_acc/len(test_dataloader))
+
+            print("Testing Loss: {:.2f}, Testing Accuracy  {:.2f}".format(testing_loss[i], testing_acc[i]))
+
+        print ("-------------------------------------------- \n")
+    
+    print("---- Finished Training ----")
+    return training_acc, training_loss, testing_acc, testing_loss
   
-  print("---- Finished Training ----")
-  
 
-def train_epoch(model, dataloader, loss_fn, optimizer, device):
-  for x, y in dataloader:
-    x, y = x.to(device), y.to(device)
+def train_epoch(model, train_dataloader, loss_fn, optimizer, device):
+    train_loss = 0.0
+    train_acc = 0.0
+    total = 0.0
 
-    # calculate loss
-    pred = model(x)
-    loss = loss_fn(pred, y)
+    model.train()
 
-    # backprop and update weights
-    optimizer.zero_grad()
-    loss.backward()
-    optimizer.step()
-  
-  print(f"Loss: {loss.item()}") 
+    for wav, target in train_dataloader:
+        wav, target = wav.to(device), target.to(device)
+
+        # calculate loss
+        output = model(wav)
+        loss = loss_fn(output, target)
+
+        # backprop and update weights
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
+        # metrics
+        train_loss += loss.item()
+        prediction = torch.argmax(output, 1)
+        train_acc += (prediction == target).sum().item()/len(prediction)
+        total += 1
+       
+    return train_loss, train_acc
+
+def validate_epoch(model, test_dataloader, loss_fn, device):
+    test_loss = 0.0
+    test_acc = 0.0
+    total = 0.0
+
+    model.eval()
+
+    with torch.no_grad():
+        for wav, target in test_dataloader:
+            wav, target = wav.to(device), target.to(device)
+
+            output = model(wav)
+            loss = loss_fn(output, target)
+
+            test_loss += loss.item()
+            prediciton = torch.argmax(output, 1)
+            test_acc += (prediciton == target).sum().item()/len(prediciton)
+            total += 1
+    
+    return test_loss, test_acc
 
 if __name__ == "__main__":
     if torch.cuda.is_available():
