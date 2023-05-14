@@ -26,7 +26,7 @@ def train(model, train_dataloader, loss_fn, optimizer, device, epochs, test_data
     testing_loss = []
 
     for i in range(epochs):
-        print(f"Epoch {i + 1}")
+        print(f"Epoch {i + 1}/{epochs}")
 
         # train model
         train_epoch_loss, train_epoch_acc = train_epoch(model, train_dataloader, loss_fn, optimizer, device)
