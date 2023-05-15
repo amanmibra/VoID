@@ -111,9 +111,9 @@ if __name__ == "__main__":
     # instantiating our dataset object and create data loader
     mel_spectrogram = torchaudio.transforms.MelSpectrogram(
         sample_rate=SAMPLE_RATE,
-        n_fft=1024,
+        n_fft=2048,
         hop_length=512,
-        n_mels=64
+        n_mels=128
     )
 
     train_dataset = VoiceDataset(TRAIN_FILE, mel_spectrogram, device)
