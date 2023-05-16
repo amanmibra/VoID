@@ -1,10 +1,30 @@
 """
 Util functions to process any incoming audio data to be processable by the model 
 """
+import os
+import librosa
 import torch
 import torchaudio
+from scipy.io import wavfile 
+import wget
 
 DEFAULT_SAMPLE_RATE=48000
+
+def process_from_url(url):
+    # download UI audio
+    filename = wget.download(url)
+    audio, sr = librosa.load(filename)
+    wavfile.write('temp.wav', DEFAULT_SAMPLE_RATE, audio)
+
+    # remove wget file
+    os.remove(filename)
+
+    # spec
+    spec = process_from_filename('temp.wav')
+
+    os.remove('temp.wav')
+    return spec
+
 
 def process_from_filename(filename, target_sample_rate=DEFAULT_SAMPLE_RATE, wav_length=5):
     wav, sample_rate = torchaudio.load(filename)
@@ -58,6 +78,6 @@ def _pad(wav, num_samples):
     if wav.shape[1] < num_samples:
         missing_samples = num_samples - wav.shape[1]
         pad = (0, missing_samples)
-        wav = torch.nn.function.pad(wav, pad)
+        wav = torch.nn.functional.pad(wav, pad)
     
     return wav

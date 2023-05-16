@@ -4,14 +4,12 @@ sys.path.append('..')
 
 import os
 from fastapi import FastAPI
-from pydantic import BaseModel
-import wget
 
 # torch
 import torch
 
 # utils
-from preprocess import process_from_filename, process_raw_wav
+from preprocess import process_from_filename, process_from_url, process_raw_wav
 from cnn import CNNetwork
 
 # load model
@@ -21,11 +19,6 @@ model.load_state_dict(state_dict)
 
 print(f"Model loaded! \n {model}")
 
-# /predict input
-# class Data(BaseModel):
-#     wav: 
-
-
 app = FastAPI()
 
 @app.get("/")
@@ -34,12 +27,13 @@ async def root():
 
 @app.get("/urlpredict")
 def url_predict(url: str):
-    filename = wget.download(url)
-    wav = process_from_filename(filename)
-    print(f"\ntest {wav.shape}\n")
+    wav = process_from_url(url)
     
     model_prediction = model_predict(wav)
-    return model_prediction["predicition_index"]
+    return {
+        "message": "Voice Identified!",
+        "data": model_prediction,
+    }
 
 @app.put("/predict")
 def predict(wav):
@@ -49,16 +43,15 @@ def predict(wav):
     model_prediction = model_predict(wav)
 
     return {
-        "message": "Voiced Identified!",
+        "message": "Voice Identified!",
         "data": model_prediction,
     }
 
 def model_predict(wav):
     model_input = wav.unsqueeze(0)
     output = model(model_input)
-    prediction = torch.argmax(output, 1).item()
+    prediction_index = torch.argmax(output, 1).item()
 
     return {
-        "output": output,
-        "prediction_index": prediction,
+        "prediction_index": prediction_index,
     }
