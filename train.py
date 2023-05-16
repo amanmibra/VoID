@@ -117,9 +117,7 @@ if __name__ == "__main__":
     )
 
     train_dataset = VoiceDataset(TRAIN_FILE, mel_spectrogram, device)
-    test_dataset = VoiceDataset(TEST_FILE, mel_spectrogram, device)
     train_dataloader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
-    test_dataloader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=True)
 
     # construct model
     model = CNNetwork().to(device)
@@ -131,7 +129,7 @@ if __name__ == "__main__":
 
 
     # train model
-    train(model, train_dataloader, loss_fn, optimizer, device, EPOCHS, test_dataloader=test_dataloader)
+    train(model, train_dataloader, loss_fn, optimizer, device, EPOCHS)
 
     # save model
     now = datetime.now()
