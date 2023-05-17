@@ -14,7 +14,7 @@ from cnn import CNNetwork
 
 # load model
 model = CNNetwork()
-state_dict = torch.load("../models/aisf/void_20230516_193200.pth")
+state_dict = torch.load("../models/aisf/void_20230517_102846.pth")
 model.load_state_dict(state_dict)
 
 # TODO: update to grabbing labels stored on model
@@ -54,8 +54,11 @@ def model_predict(wav):
     model_input = wav.unsqueeze(0)
     output = model(model_input)
     prediction_index = torch.argmax(output, 1).item()
+    output = output.detach().cpu().numpy()[0]
 
     return {
         "prediction_index": prediction_index,
-        "prediciton": LABELS[prediction_index],
+        "labels": LABELS,
+        "prediction_label": LABELS[prediction_index],
+        "prediction_output": output.tolist(),
     }

@@ -9,6 +9,7 @@ from scipy.io import wavfile
 import wget
 
 DEFAULT_SAMPLE_RATE=48000
+DEFAULT_WAVE_LENGTH=3
 
 def process_from_url(url):
     # download UI audio
@@ -26,7 +27,7 @@ def process_from_url(url):
     return spec
 
 
-def process_from_filename(filename, target_sample_rate=DEFAULT_SAMPLE_RATE, wav_length=5):
+def process_from_filename(filename, target_sample_rate=DEFAULT_SAMPLE_RATE, wav_length=DEFAULT_WAVE_LENGTH):
     wav, sample_rate = torchaudio.load(filename)
 
     wav = process_raw_wav(wav, sample_rate, target_sample_rate, wav_length)
@@ -35,7 +36,7 @@ def process_from_filename(filename, target_sample_rate=DEFAULT_SAMPLE_RATE, wav_
 
     return spec
 
-def process_raw_wav(wav, sample_rate=DEFAULT_SAMPLE_RATE, target_sample_rate=DEFAULT_SAMPLE_RATE, wav_length=5):
+def process_raw_wav(wav, sample_rate=DEFAULT_SAMPLE_RATE, target_sample_rate=DEFAULT_SAMPLE_RATE, wav_length=DEFAULT_WAVE_LENGTH):
     num_samples = wav_length * target_sample_rate
 
     wav = _resample(wav, sample_rate, target_sample_rate)
