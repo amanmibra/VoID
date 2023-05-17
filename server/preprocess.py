@@ -7,18 +7,24 @@ import torch
 import torchaudio
 from scipy.io import wavfile 
 import wget
+import requests
 
 DEFAULT_SAMPLE_RATE=48000
 DEFAULT_WAVE_LENGTH=3
 
 def process_from_url(url):
     # download UI audio
-    filename = wget.download(url)
-    audio, sr = librosa.load(filename)
-    wavfile.write('temp.wav', DEFAULT_SAMPLE_RATE, audio)
+    req_url = requests.get(url)
 
-    # remove wget file
-    os.remove(filename)
+    with open('temp.wav', 'wb') as file:
+        file.write(req_url.content)
+
+    
+    # filename = 'temp.wav'
+    # audio = torchaudio.load(filename)
+
+    # # remove wget file
+    # os.remove(filename)
 
     # spec
     spec = process_from_filename('temp.wav')
@@ -36,7 +42,7 @@ def process_from_filename(filename, target_sample_rate=DEFAULT_SAMPLE_RATE, wav_
 
     return spec
 
-def process_raw_wav(wav, sample_rate=DEFAULT_SAMPLE_RATE, target_sample_rate=DEFAULT_SAMPLE_RATE, wav_length=DEFAULT_WAVE_LENGTH):
+def process_raw_wav(wav, sample_rate, target_sample_rate, wav_length):
     num_samples = wav_length * target_sample_rate
 
     wav = _resample(wav, sample_rate, target_sample_rate)
