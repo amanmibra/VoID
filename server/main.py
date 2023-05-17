@@ -14,8 +14,11 @@ from cnn import CNNetwork
 
 # load model
 model = CNNetwork()
-state_dict = torch.load("../models/void_demo.pth")
+state_dict = torch.load("../models/aisf/void_20230516_193200.pth")
 model.load_state_dict(state_dict)
+
+# TODO: update to grabbing labels stored on model
+LABELS = ["shafqat", "aman", "jake"]
 
 print(f"Model loaded! \n {model}")
 
@@ -54,4 +57,5 @@ def model_predict(wav):
 
     return {
         "prediction_index": prediction_index,
+        "prediciton": LABELS[prediction_index],
     }
