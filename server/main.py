@@ -14,7 +14,7 @@ from cnn import CNNetwork
 
 # load model
 model = CNNetwork()
-state_dict = torch.load("../models/aisf/void_20230517_102846.pth")
+state_dict = torch.load("../models/aisf/void_20230517_113634.pth")
 model.load_state_dict(state_dict)
 
 # TODO: update to grabbing labels stored on model

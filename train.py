@@ -12,10 +12,11 @@ from dataset import VoiceDataset
 from cnn import CNNetwork
 
 BATCH_SIZE = 128
-EPOCHS = 100
+EPOCHS = 10
 LEARNING_RATE = 0.001
 
 TRAIN_FILE="data/train"
+AISF_TRAIN_FILE="data/aisf/train"
 TEST_FILE="data/test"
 SAMPLE_RATE=48000
 
@@ -35,7 +36,7 @@ def train(model, train_dataloader, loss_fn, optimizer, device, epochs, test_data
         training_loss.append(train_epoch_loss/len(train_dataloader))
         training_acc.append(train_epoch_acc/len(train_dataloader))
 
-        print("Training Loss: {:.2f}, Training Accuracy  {:.2f}".format(training_loss[i], training_acc[i]))
+        print("Training Loss: {:.2f}, Training Accuracy  {}".format(training_loss[i], training_acc[i]))
 
         if test_dataloader:
             # test model
@@ -45,7 +46,7 @@ def train(model, train_dataloader, loss_fn, optimizer, device, epochs, test_data
             testing_loss.append(test_epoch_loss/len(test_dataloader))
             testing_acc.append(test_epoch_acc/len(test_dataloader))
 
-            print("Testing Loss: {:.2f}, Testing Accuracy  {:.2f}".format(testing_loss[i], testing_acc[i]))
+            print("Testing Loss: {:.2f}, Testing Accuracy  {}".format(testing_loss[i], testing_acc[i]))
 
         print ("-------------------------------------------- \n")
     
@@ -116,24 +117,28 @@ if __name__ == "__main__":
         n_mels=128
     )
 
-    train_dataset = VoiceDataset(TRAIN_FILE, mel_spectrogram, device)
+    train_dataset = VoiceDataset(AISF_TRAIN_FILE, mel_spectrogram, device)
     train_dataloader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
 
     # construct model
     model = CNNetwork().to(device)
     print(model)
+    print(train_dataset.label_mapping)
 
     # init loss function and optimizer
     loss_fn = nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
+    # optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
+    optimizer = torch.optim.SGD(model.parameters(), lr=LEARNING_RATE, momentum=0.9)
 
 
     # train model
     train(model, train_dataloader, loss_fn, optimizer, device, EPOCHS)
 
+    model.label_mapping = train_dataset.label_mapping
+
     # save model
     now = datetime.now()
     now = now.strftime("%Y%m%d_%H%M%S")
-    model_filename = f"models/void_{now}.pth"
+    model_filename = f"models/aisf/void_{now}.pth"
     torch.save(model.state_dict(), model_filename)
     print(f"Trained void model saved at {model_filename}")
