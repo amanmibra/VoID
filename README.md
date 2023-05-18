@@ -1,9 +1,10 @@
 # VoID: Voice Identifier
 
 Classifier to recognize the identity of a speaker
-Project was done as a part of the AISF hackathon, finalist :D
 
-www.aisf.co
+Project was done as a part of the AISF hackathon (www.aisf.co), VoID was a finalist :D
+
+
 
 ## Details
 
