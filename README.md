@@ -4,8 +4,6 @@ Classifier to recognize the identity of a speaker
 
 Project was done as a part of the AISF hackathon (www.aisf.co), VoID was a finalist :D
 
-
-
 ## Details
 
 ### Dataset
@@ -49,3 +47,7 @@ CNNetwork(
 ## Demo
 
 Watch the demo of our model [here](https://www.loom.com/share/a8cb126af7b64ddaaa67c6f00e23f4e9)!
+
+## Running locally
+
+Make sure to create and install the conda dependencies declared in `void.yml`.
