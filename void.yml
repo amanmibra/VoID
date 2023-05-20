@@ -1,0 +1,20 @@
+name: void
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.9
+  - torchaudio
+  - torchvision
+  - pytorch::pytorch
+  - scikit-learn
+  - flask
+  - matplotlib
+  - pandas
+  - jupyter
+  - tqdm
+  - fastapi
+  - uvicorn
+  - librosa
+  - numpy
+  - wget
