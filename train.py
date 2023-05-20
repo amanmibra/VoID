@@ -1,5 +1,6 @@
 from datetime import datetime
 from tqdm import tqdm
+import wandb
 
 # torch
 import torch
@@ -37,6 +38,7 @@ def train(model, train_dataloader, loss_fn, optimizer, device, epochs, test_data
         training_acc.append(train_epoch_acc/len(train_dataloader))
 
         print("Training Loss: {:.2f}, Training Accuracy  {}".format(training_loss[i], training_acc[i]))
+        wandb.log({'training_loss': training_loss[i], 'training_acc': training_acc[i]})
 
         if test_dataloader:
             # test model
@@ -47,6 +49,7 @@ def train(model, train_dataloader, loss_fn, optimizer, device, epochs, test_data
             testing_acc.append(test_epoch_acc/len(test_dataloader))
 
             print("Testing Loss: {:.2f}, Testing Accuracy  {}".format(testing_loss[i], testing_acc[i]))
+            wandb.log({'testing_loss': testing_loss[i], 'training_acc': training_acc[i]})
 
         print ("-------------------------------------------- \n")
     
@@ -117,7 +120,7 @@ if __name__ == "__main__":
         n_mels=128
     )
 
-    train_dataset = VoiceDataset(AISF_TRAIN_FILE, mel_spectrogram, device)
+    train_dataset = VoiceDataset(AISF_TRAIN_FILE, mel_spectrogram, device, time_limit_in_secs=3)
     train_dataloader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
 
     # construct model
@@ -130,6 +133,7 @@ if __name__ == "__main__":
     # optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
     optimizer = torch.optim.SGD(model.parameters(), lr=LEARNING_RATE, momentum=0.9)
 
+    wandb.init(project="void-train")
 
     # train model
     train(model, train_dataloader, loss_fn, optimizer, device, EPOCHS)
@@ -142,3 +146,4 @@ if __name__ == "__main__":
     model_filename = f"models/aisf/void_{now}.pth"
     torch.save(model.state_dict(), model_filename)
     print(f"Trained void model saved at {model_filename}")
+    wandb.finish()
