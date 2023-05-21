@@ -28,28 +28,35 @@ class VoiceDataset(Dataset):
         self.target_sample_rate = target_sample_rate
         self.num_samples = time_limit_in_secs * self.target_sample_rate
 
+        # preprocess all wavs
+        self.wavs = self._process_wavs()
+
     def __len__(self):
         return len(self.audio_files_labels)
 
     def __getitem__(self, index):
-        # get file
-        file, label = self.audio_files_labels[index]
-        filepath = os.path.join(self._data_path, label, file)
+        return self.wavs[index]
 
-        # load wav
-        wav, sr = torchaudio.load(filepath, normalize=True)
+    def _process_wavs(self):
+        wavs = []
+        for file, label in self.audio_files_labels:
+            filepath = os.path.join(self._data_path, label, file)
 
-        # modify wav file, if necessary
-        wav = wav.to(self.device)
-        wav = self._resample(wav, sr)
-        wav = self._mix_down(wav)
-        wav = self._cut_or_pad(wav)
+            # load wav
+            wav, sr = torchaudio.load(filepath, normalize=True)
+
+            # modify wav file, if necessary
+            wav = wav.to(self.device)
+            wav = self._resample(wav, sr)
+            wav = self._mix_down(wav)
+            wav = self._cut_or_pad(wav)
+            
+            # apply transformation
+            wav = self.transformation(wav)
+
+            wavs.append((wav, self.label_mapping[label]))
         
-        # apply transformation
-        wav = self.transformation(wav)
-
-        # return wav and integer representation of the label
-        return wav, self.label_mapping[label]
+        return wavs
 
 
     def _join_audio_files(self):
