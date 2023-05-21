@@ -17,5 +17,6 @@ training_image_pip = (
         "torchaudio==2.0.0",
         "pandas",
         "tqdm",
+        "wandb",
     )
 )

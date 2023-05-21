@@ -49,7 +49,7 @@ def train(model, train_dataloader, loss_fn, optimizer, device, epochs, test_data
             testing_acc.append(test_epoch_acc/len(test_dataloader))
 
             print("Testing Loss: {:.2f}, Testing Accuracy  {}".format(testing_loss[i], testing_acc[i]))
-            wandb.log({'testing_loss': testing_loss[i], 'training_acc': training_acc[i]})
+            wandb.log({'testing_loss': testing_loss[i], 'testing_acc': testing_acc[i]})
 
         print ("-------------------------------------------- \n")
     

@@ -8,7 +8,7 @@ from torch import nn
 from torch.utils.data import DataLoader
 
 # modal
-from modal import Mount, Stub, gpu, create_package_mounts
+from modal import Mount, Secret, Stub, gpu, create_package_mounts
 
 # internal
 from pipelines.images import training_image_pip
@@ -38,27 +38,33 @@ stub = Stub(
         Mount.from_local_file(local_path='cnn.py'),
     ],
     timeout=EPOCHS * 60,
+    secret=Secret.from_name("wandb")
 )
 def train(
         model,
         train_dataloader,
         loss_fn,
         optimizer,
-        device,
-        epochs,
+        device="cuda",
+        epochs=10,
     ):
+    import os
+
     import time
     import torch
-
+    import wandb
 
     print("Begin model training...")
     begin = time.time()
 
+    # set model to cuda
     model = model.to(device)
 
     # metrics
     training_acc = []
     training_loss = []
+
+    wandb.init(project="void-training")
 
     for i in range(epochs):
         print(f"Epoch {i + 1}/{epochs}")
@@ -70,6 +76,7 @@ def train(
         # training metrics
         training_loss.append(train_epoch_loss/len(train_dataloader))
         training_acc.append(train_epoch_acc/len(train_dataloader))
+        wandb.log({'training_loss': training_loss[i], 'training_acc': training_acc[i]})        
 
         now = time.time()
         print("Training Loss: {:.2f}, Training Accuracy: {:.2f}, Time: {:.2f}s".format(training_loss[i], training_acc[i], now - then))
@@ -77,6 +84,7 @@ def train(
         print ("-------------------------------------------- \n")
     
     end = time.time()
+    wandb.finish()
     
     print("-------- Finished Training --------")
     print("-------- Total Time -- {:.2f}s --------".format(end - begin))
