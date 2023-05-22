@@ -21,7 +21,7 @@ from cnn import CNNetwork
 # script defaults
 BATCH_SIZE = 128
 EPOCHS = 10
-LEARNING_RATE = 0.01
+LEARNING_RATE = 0.001
 
 TRAIN_FILE="data/train"
 TEST_FILE="data/test"
