@@ -1,5 +1,6 @@
 import sys
 sys.path.append('..')
+import time
 
 # torch
 import torch
@@ -32,20 +33,20 @@ stub = Stub(
 )
 
 @stub.function(
-    gpu=gpu.A100(memory=20),
+    gpu="any",
     mounts=[
         Mount.from_local_file(local_path='dataset.py'),
         Mount.from_local_file(local_path='cnn.py'),
     ],
-    timeout=EPOCHS * 60,
-    secret=Secret.from_name("wandb")
+    timeout=EPOCHS * 200,
+    secret=Secret.from_name("wandb"),
 )
 def train(
         model,
         train_dataloader,
         loss_fn,
         optimizer,
-        device="cuda",
+        origin_device="cuda",
         epochs=10,
     ):
     import os
@@ -57,8 +58,12 @@ def train(
     print("Begin model training...")
     begin = time.time()
 
+    modal_device = origin_device
+
     # set model to cuda
-    model = model.to(device)
+    if torch.cuda.is_available() and modal_device != "cuda":
+        modal_device = "cuda"
+        model = model.to(modal_device)
 
     # metrics
     training_acc = []
@@ -71,7 +76,7 @@ def train(
         then = time.time()
 
         # train model
-        train_epoch_loss, train_epoch_acc = train_epoch.call(model, train_dataloader, loss_fn, optimizer, device)
+        model, train_epoch_loss, train_epoch_acc = train_epoch.call(model, train_dataloader, loss_fn, optimizer, modal_device)
 
         # training metrics
         training_loss.append(train_epoch_loss/len(train_dataloader))
@@ -79,18 +84,19 @@ def train(
         wandb.log({'training_loss': training_loss[i], 'training_acc': training_acc[i]})        
 
         now = time.time()
-        print("Training Loss: {:.2f}, Training Accuracy: {:.2f}, Time: {:.2f}s".format(training_loss[i], training_acc[i], now - then))
+        print("Training Loss: {:.2f}, Training Accuracy: {:.4f}, Time: {:.2f}s".format(training_loss[i], training_acc[i], now - then))
 
-        print ("-------------------------------------------- \n")
+        print ("-------------------------------------------------------- \n")
     
     end = time.time()
     wandb.finish()
-    
     print("-------- Finished Training --------")
     print("-------- Total Time -- {:.2f}s --------".format(end - begin))
 
+    return model.to(origin_device)
+
 @stub.function(
-    gpu=gpu.A100(memory=20),
+    gpu="any",
     mounts=[
         Mount.from_local_file(local_path='dataset.py'),
         Mount.from_local_file(local_path='cnn.py'),
@@ -124,12 +130,26 @@ def train_epoch(model, train_dataloader, loss_fn, optimizer, device):
         train_acc += (prediction == target).sum().item()/len(prediction)
         total += 1
        
-    return train_loss, train_acc
+    return model, train_loss, train_acc
+
+def save_model(model):
+    now = time.strftime("%Y%m%d_%H%M%S")
+    model_filename = f"models/void_{now}.pth"
+    torch.save(model.state_dict(), model_filename)
+    print(f"Trained void model saved at {model_filename}")
+
+def get_device():
+    if torch.cuda.is_available():
+        device = "cuda"
+    else:
+        device = "cpu"
+
+    return device
 
 @stub.local_entrypoint()
 def main():
     print("Initiating model training...")
-    device = "cpu"
+    device = get_device()
 
     # instantiating our dataset object and create data loader
     mel_spectrogram = torchaudio.transforms.MelSpectrogram(
@@ -151,5 +171,8 @@ def main():
     optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
     # train model
-    train.call(model, train_dataloader, loss_fn, optimizer, "cuda", EPOCHS)
+    model = train.call(model, train_dataloader, loss_fn, optimizer, device, 3)
+
+    # save model
+    save_model(model)
     
