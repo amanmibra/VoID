@@ -1,3 +1,14 @@
+---
+title: { { title } }
+emoji: { { emoji } }
+colorFrom: { { colorFrom } }
+colorTo: { { colorTo } }
+sdk: { { sdk } }
+sdk_version: { { sdkVersion } }
+app_file: app.py
+pinned: false
+---
+
 # VoID: Voice Identifier
 
 Classifier to recognize the identity of a speaker
