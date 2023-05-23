@@ -2,11 +2,9 @@
 Util functions to process any incoming audio data to be processable by the model 
 """
 import os
-import librosa
 import torch
 import torchaudio
-from scipy.io import wavfile 
-import wget
+# import wget
 import requests
 
 DEFAULT_SAMPLE_RATE=48000
