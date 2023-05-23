@@ -1,10 +1,10 @@
 ---
-title: { { VoID Demo from AISF Hackathon } }
-emoji: { { 😤 } }
-colorFrom: { { blue } }
-colorTo: { { yellow } }
-sdk: { { gradio } }
-python_version: { { 3.9 } }
+title: VoID Demo from AISF Hackathon
+emoji: 😤
+colorFrom: blue
+colorTo: yellow
+sdk: gradio
+python_version: 3.9
 app_file: gradio_app.py
 pinned: false
 ---
