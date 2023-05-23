@@ -20,11 +20,11 @@ from cnn import CNNetwork
 
 # script defaults
 BATCH_SIZE = 128
-EPOCHS = 10
+EPOCHS = 100
 LEARNING_RATE = 0.001
 
-TRAIN_FILE="data/train"
-TEST_FILE="data/test"
+TRAIN_FILE="data/aisf/augmented/train"
+TEST_FILE="data/aisf/augmented/test"
 SAMPLE_RATE=48000
 
 stub = Stub(
@@ -33,7 +33,7 @@ stub = Stub(
 )
 
 @stub.function(
-    gpu="any",
+    gpu=gpu.A100(memory=20),
     mounts=[
         Mount.from_local_file(local_path='dataset.py'),
         Mount.from_local_file(local_path='cnn.py'),
@@ -49,6 +49,7 @@ def train(
         origin_device="cuda",
         epochs=10,
         test_dataloader=None,
+        wandb_enabled=False,
     ):
     import os
 
@@ -72,7 +73,8 @@ def train(
     testing_acc = []
     testing_loss = []
 
-    wandb.init(project="void-training")
+    if wandb_enabled:
+        wandb.init(project="void-training")
 
     for i in range(epochs):
         print(f"Epoch {i + 1}/{epochs}")
@@ -84,7 +86,8 @@ def train(
         # training metrics
         training_loss.append(train_epoch_loss/len(train_dataloader))
         training_acc.append(train_epoch_acc/len(train_dataloader))
-        wandb.log({'training_loss': training_loss[i], 'training_acc': training_acc[i]})        
+        if wandb_enabled:
+            wandb.log({'training_loss': training_loss[i], 'training_acc': training_acc[i]})        
 
         now = time.time()
         print("Training Loss: {:.2f}, Training Accuracy: {:.4f}, Time: {:.2f}s".format(training_loss[i], training_acc[i], now - then))
@@ -97,9 +100,10 @@ def train(
             testing_loss.append(test_epoch_loss/len(test_dataloader))
             testing_acc.append(test_epoch_acc/len(test_dataloader))
 
-            print("Testing Loss: {:.2f}, Testing Accuracy  {:.2f}".format(testing_loss[i], testing_acc[i]))
+            print("Testing Loss: {:.2f}, Testing Accuracy  {:.4f}".format(testing_loss[i], testing_acc[i]))
 
-            wandb.log({'testing_loss': testing_loss[i], 'testing_acc': testing_acc[i]})
+            if wandb_enabled:
+                wandb.log({'testing_loss': testing_loss[i], 'testing_acc': testing_acc[i]})
 
         print ("-------------------------------------------------------- \n")
     
@@ -115,7 +119,8 @@ def train(
     mounts=[
         Mount.from_local_file(local_path='dataset.py'),
         Mount.from_local_file(local_path='cnn.py'),
-    ]
+    ],
+    timeout=600,
 )
 def train_epoch(model, train_dataloader, loss_fn, optimizer, device):
     import torch
@@ -148,7 +153,7 @@ def train_epoch(model, train_dataloader, loss_fn, optimizer, device):
     return model, train_loss, train_acc
 
 @stub.function(
-    gpu="any",
+    gpu=gpu.A100(memory=20),
     mounts=[
         Mount.from_local_file(local_path='dataset.py'),
         Mount.from_local_file(local_path='cnn.py'),
@@ -219,7 +224,7 @@ def main():
     optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
     # train model
-    model = train.call(model, train_dataloader, loss_fn, optimizer, device, EPOCHS, test_dataloader)
+    model = train.call(model, train_dataloader, loss_fn, optimizer, device, EPOCHS, test_dataloader, True)
 
     # save model
     save_model(model)
