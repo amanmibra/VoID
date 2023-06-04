@@ -2,18 +2,27 @@ import os
 
 import torch
 from torch.utils.data import Dataset
-import pandas as pd
 import torchaudio
+
+DEFAULT_SAMPLE_RATE = 48000
+DEFAULT_TIME_LIMIT = 5
+DEFAULT_DEVICE="cpu"
+DEFAULT_TRANSFORMATION = torchaudio.transforms.MelSpectrogram(
+    sample_rate=DEFAULT_SAMPLE_RATE,
+    n_fft=2048,
+    hop_length=512,
+    n_mels=128
+)
 
 class VoiceDataset(Dataset):
 
     def __init__(
             self,
             data_directory,
-            transformation,
-            device,
-            target_sample_rate=48000,
-            time_limit_in_secs=5,
+            transformation=DEFAULT_TRANSFORMATION,
+            device=DEFAULT_DEVICE,
+            target_sample_rate=DEFAULT_SAMPLE_RATE,
+            time_limit_in_secs=DEFAULT_TIME_LIMIT,
         ):
         # file processing
         self._data_path = os.path.join(data_directory)
